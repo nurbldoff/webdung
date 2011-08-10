@@ -63,11 +63,14 @@ function start() {
         // Here's where we call the routine that builds all the objects
         // we'll be drawing.
 
-        initBuffers();
+        initSquareBuffers();
+        initCubeBuffers();
 
         // Next, load and set up the textures we'll be using.
 
         initTextures();
+
+
 
         // Set up to draw the scene periodically.
 
@@ -78,6 +81,24 @@ function start() {
         })();
     }
 }
+
+function loadMap (filename) {
+    var map_img = new Image();   // Create new img element
+    map_img.src = filename; // Set source path
+    var buffer = document.createElement('canvas');
+    buffer.width = map_img.width;
+    buffer.height = map_img.height;
+    var ctx = buffer.getContext('2d');
+    ctx.drawImage(map_img, 0, 0);
+    var imgd = context.getImageData(x, y, width, height);
+    var mapdata = imgd.data;
+    return mapdata;
+}
+
+function getMapTile (mapdata, x, y, z) {
+    return mapdata[32*3*y+32*z+x];
+}
+
 
 //
 // initWebGL
@@ -137,7 +158,7 @@ function initTextureFramebuffer() {
 // Initialize the buffers we'll need. For this demo, we just have
 // one object -- a simple two-dimensional cube.
 //
-function initBuffers() {
+function initSquareBuffers() {
 
     // Plane to act as viewport
 
@@ -195,7 +216,9 @@ function initBuffers() {
 
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
                   new Uint16Array(square_VertexIndices), gl.STATIC_DRAW);
+}
 
+function initCubeBuffers() {
 
     // Create a buffer for the cube's vertices.
 
@@ -504,6 +527,9 @@ function drawCube() {
     // Draw the cube.
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+
+
+
     setMatrixUniforms();
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
@@ -541,34 +567,6 @@ function drawCube() {
 function initShaders() {
     viewShaderProgram = createProgram("shader-view-fs", "shader-view-vs");
     shaderProgram = createProgram("shader-wall-fs", "shader-wall-vs");
-  //   //gl.useProgram(0);
-
-  // var fragmentShader = getShader(gl, "shader-wall-fs");
-  // var vertexShader = getShader(gl, "shader-wall-vs");
-
-  // // Create the shader program
-
-  // shaderProgram = gl.createProgram();
-  // gl.attachShader(shaderProgram, vertexShader);
-  // gl.attachShader(shaderProgram, fragmentShader);
-  // gl.linkProgram(shaderProgram);
-
-  // // If creating the shader program failed, alert
-
-  // if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-  //   alert("Unable to initialize the shader program 2.");
-  // }
-
-  // gl.useProgram(shaderProgram);
-
-  // vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-  // gl.enableVertexAttribArray(vertexPositionAttribute);
-
-  // textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-  // gl.enableVertexAttribArray(textureCoordAttribute);
-
-  // vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
-  // gl.enableVertexAttribArray(vertexNormalAttribute);
 }
 
 function createProgram(fragmentShaderID, vertexShaderID) {
