@@ -71,6 +71,7 @@
       attribute highp vec3 aVertexNormal;
       attribute highp vec3 aVertexPosition;
       attribute highp vec2 aTextureCoord;
+      attribute highp vec3 aWorldPosition;
 
       uniform highp mat4 uNormalMatrix;
       uniform highp mat4 uMVMatrix;
@@ -80,7 +81,7 @@
       varying highp vec3 vLighting;
 
       void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
         vTextureCoord = aTextureCoord;
 
         // Apply lighting effect
