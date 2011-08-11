@@ -81,10 +81,19 @@ function start() {
         document.onkeydown = handleKeyDown;
         document.onkeyup = handleKeyUp;
 
-        //setInterval(drawScene, 15);
+
+        var lastLoop = new Date();
+
         (function animloop(){
-            drawScene();
-            requestAnimFrame(animloop, canvas);
+            var thisLoop = new Date();
+            var diff = thisLoop - lastLoop;
+            //var fps = 1000 / (thisLoop - lastLoop);
+            //console.log(diff);
+            setTimeout(function() {
+                drawScene();
+                requestAnimFrame(animloop, canvas);
+            }, 33-diff);  // I guess this doesn't really work, but it limits the cpu usage a bit
+            lastLoop = new Date();
         })();
     }
 }
@@ -465,33 +474,33 @@ function initCubeBuffers() {
                 textureCoordinates = textureCoordinates.concat( [
                     // Front
                     0.0,  0.0,
-                        .25,  0.0,
-                        .25,  1.0,
+                        1.0,  0.0,
+                        1.0,  1.0,
                     0.0,  1.0,
                     // Back
-                        .25,  0.0,
-                        .25,  1.0,
+                        1.0,  0.0,
+                        1.0,  1.0,
                     0.0,  1.0,
                     0.0,  0.0,
                     // Top
                     0.0,  0.0,
-                        .25,  0.0,
-                        .25,  1.0,
+                        1.0,  0.0,
+                        1.0,  1.0,
                     0.0,  1.0,
                     // Bottom
                     0.0,  0.0,
-                        .25,  0.0,
-                        .25,  1.0,
+                        1.0,  0.0,
+                        1.0,  1.0,
                     0.0,  1.0,
                     // Right
-                        .25,  0.0,
-                        .25,  1.0,
+                        1.0,  0.0,
+                        1.0,  1.0,
                     0.0,  1.0,
                     0.0,  0.0,
                     // Left
                     0.0,  0.0,
-                        .25,  0.0,
-                        .25,  1.0,
+                        1.0,  0.0,
+                        1.0,  1.0,
                     0.0,  1.0
                 ] );
 
