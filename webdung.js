@@ -627,6 +627,8 @@ function drawSquare() {
     gl.bindTexture(gl.TEXTURE_2D, rttTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.uniform1i(gl.getUniformLocation(viewShaderProgram, "uSampler"), 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, squareVerticesIndexBuffer);
@@ -708,6 +710,8 @@ function drawCubes() {
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
 
