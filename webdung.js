@@ -356,9 +356,9 @@ function initCubeBuffers() {
     var x, y, z=1;
     var o = 0;
 
-    for(x=0; x<32; x++) {
-        for(y=0; y<32;y++) {
-            for(z=1; z<2; z++) {
+    for(x=0; x<16; x++) {
+        for(y=16; y<32;y++) {
+            for(z=0; z<3; z++) {
 
             //console.log(getMapTile(mapdata, x, y, z));
             if(getMapTile(mapdata, x, y, z) > 0) {
@@ -412,11 +412,32 @@ function initCubeBuffers() {
                         -0.5,  0.5, -0.5
                 ] );
 
-
-
-                for(var i=0; i<24; i++) {
-                    vertexWorldPositions = vertexWorldPositions.concat( [x, z, y] );
-                }
+                vertexWorldPositions = vertexWorldPositions.concat( [
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y
+                ] );
 
                 //console.log(x,y,z);
 

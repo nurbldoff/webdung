@@ -78,13 +78,14 @@
       uniform highp mat4 uMVMatrix;
       uniform highp mat4 uPMatrix;
 
-      varying highp vec2 vTextureCoord, vTransformedNormal;
+      varying highp vec2 vTextureCoord;
       varying highp vec3 vLighting;
+      varying highp vec4 vTransformedNormal, vVertex;
       varying highp float fogFactor, fogDistance, surfaceCosine;
 
 
       void main(void) {
-        vec4 vVertex = uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
+        vVertex = uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
         gl_Position = uPMatrix * vVertex;
 
         // Apply lighting effect
@@ -93,23 +94,28 @@
         highp vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
         highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);
 
-        vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+        vTransformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
 
-        //highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-        highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+        //highp float directional = max(dot(vTransformedNormal.xyz, directionalVector), 0.0);
+        highp float directional = max(dot(vTransformedNormal.xyz, directionalVector), 0.0);
         vLighting = ambientLight + (directionalLightColor * directional);
         fogDistance = length(vVertex);
         fogFactor = exp2( -.25 * .25 * fogDistance*fogDistance );
+        fogFactor = clamp(fogFactor, 0.0, 1.0);
 
-        surfaceCosine = abs(dot(transformedNormal.xyz, normalize(vVertex).xyz));
+        surfaceCosine = abs(dot(vTransformedNormal.xyz, normalize(vVertex).xyz));
         vec4 vCenter = uMVMatrix * vec4(aWorldPosition, 1.0);
-        float centerCosine = abs(dot(normalize(vCenter).xyz, transformedNormal.xyz));
+        float centerCosine = abs(dot(normalize(vCenter).xyz, vTransformedNormal.xyz));
 
-        highp vec3 a = cross( normalize(vCenter).xyz, transformedNormal.xyz);
+        highp vec3 a = cross( normalize(vCenter).xyz, vTransformedNormal.xyz);
         //vTextureCoord = aTextureCoord;
         vTextureCoord.x = aTextureCoord.x*0.25 + 0.25;
-        if (transformedNormal.y == 0. && centerCosine < 0.85) {
-            vTextureCoord.x = vTextureCoord.x-sign(a.y)*0.25;
+        if (vTransformedNormal.y == 0.) {
+            if (centerCosine < 0.85) {
+                vTextureCoord.x = vTextureCoord.x-sign(a.y)*0.25;
+            }
+        } else {
+            vTextureCoord.x = vTextureCoord.x+.5;
         }
         //gl_TexCoord[0].x = gl_MultiTexCoord0.x;
         vTextureCoord.y = aTextureCoord.y;
@@ -124,13 +130,19 @@
 
       varying highp vec2 vTextureCoord;
       varying highp vec3 vLighting;
-      varying float fogFactor, surfaceCosine;
+      varying highp vec4 vTransformedNormal, vVertex;
+      varying float fogFactor; // surfaceCosine;
       uniform sampler2D uSampler;
 
       void main(void) {
+
+        if(fogFactor < 0.) {    // don't draw anything that would be black anyway
+            discard;
+        }
+        float surfaceCosine2 = max(dot(vTransformedNormal.xyz, normalize(-vVertex).xyz), 0.0);
         vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
 
-        gl_FragColor = vec4(texelColor.rgb * surfaceCosine * fogFactor, texelColor.a);
+        gl_FragColor = vec4(texelColor.rgb * surfaceCosine2 * fogFactor, texelColor.a);
       }
     </script>
   </head>
