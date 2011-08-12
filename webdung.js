@@ -376,43 +376,55 @@ function initCubeBuffers() {
 
                 vertices = vertices.concat( [
                     // Front face
-                        -0.5, -0.5,  0.5,
+                   -0.5, -0.5,  0.5,
                     0.5, -0.5,  0.5,
                     0.5,  0.5,  0.5,
-                        -0.5,  0.5,  0.5,
+                   -0.5,  0.5,  0.5,
+                    0.0,  0.0,  0.5,
 
                     // Back face
                         -0.5, -0.5, -0.5,
                         -0.5,  0.5, -0.5,
                     0.5,  0.5, -0.5,
                     0.5, -0.5, -0.5,
+                    0.0, 0.0, -0.5,
 
                     // Top face
                         -0.5,  0.5, -0.5,
                         -0.5,  0.5,  0.5,
                     0.5,  0.5,  0.5,
                     0.5,  0.5, -0.5,
+                    0.0, 0.5, 0.0,
 
                     // Bottom face
                         -0.5, -0.5, -0.5,
                     0.5, -0.5, -0.5,
                     0.5, -0.5,  0.5,
                         -0.5, -0.5,  0.5,
+                    0.0, -0.5, 0.0,
 
                     // Right face
                     0.5, -0.5, -0.5,
                     0.5,  0.5, -0.5,
                     0.5,  0.5,  0.5,
                     0.5, -0.5,  0.5,
+                    0.5, 0.0, 0.0,
 
                     // Left face
                         -0.5, -0.5, -0.5,
                         -0.5, -0.5,  0.5,
                         -0.5,  0.5,  0.5,
-                        -0.5,  0.5, -0.5
+                        -0.5,  0.5, -0.5,
+                        -0.5, 0.0, 0.0
                 ] );
 
                 vertexWorldPositions = vertexWorldPositions.concat( [
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
+                    x,z,y,
                     x,z,y,
                     x,z,y,
                     x,z,y,
@@ -456,8 +468,10 @@ function initCubeBuffers() {
                     0.0,  0.0,  1.0,
                     0.0,  0.0,  1.0,
                     0.0,  0.0,  1.0,
+                    0.0,  0.0,  1.0,
 
                     // Back
+                    0.0,  0.0, -1.0,
                     0.0,  0.0, -1.0,
                     0.0,  0.0, -1.0,
                     0.0,  0.0, -1.0,
@@ -468,20 +482,25 @@ function initCubeBuffers() {
                     0.0,  1.0,  0.0,
                     0.0,  1.0,  0.0,
                     0.0,  1.0,  0.0,
+                    0.0,  1.0,  0.0,
 
                     // Bottom
                     0.0, -1.0,  0.0,
                     0.0, -1.0,  0.0,
                     0.0, -1.0,  0.0,
                     0.0, -1.0,  0.0,
+                    0.0, -1.0,  0.0,
+
 
                     // Right
                     1.0,  0.0,  0.0,
                     1.0,  0.0,  0.0,
                     1.0,  0.0,  0.0,
                     1.0,  0.0,  0.0,
+                    1.0,  0.0,  0.0,
 
                     // Left
+                        -1.0,  0.0,  0.0,
                         -1.0,  0.0,  0.0,
                         -1.0,  0.0,  0.0,
                         -1.0,  0.0,  0.0,
@@ -498,31 +517,37 @@ function initCubeBuffers() {
                         1.0,  0.0,
                         1.0,  1.0,
                     0.0,  1.0,
+                    0.5, 0.5,
                     // Back
                         1.0,  0.0,
                         1.0,  1.0,
                     0.0,  1.0,
                     0.0,  0.0,
+                    0.5, 0.5,
                     // Top
                     0.0,  0.0,
                         1.0,  0.0,
                         1.0,  1.0,
                     0.0,  1.0,
+                    0.5, 0.5,
                     // Bottom
                     0.0,  0.0,
                         1.0,  0.0,
                         1.0,  1.0,
                     0.0,  1.0,
+                    0.5, 0.5,
                     // Right
                         1.0,  0.0,
                         1.0,  1.0,
                     0.0,  1.0,
                     0.0,  0.0,
+                    0.5, 0.5,
                     // Left
                     0.0,  0.0,
                         1.0,  0.0,
                         1.0,  1.0,
-                    0.0,  1.0
+                    0.0,  1.0,
+                    0.5, 0.5
                 ] );
 
 
@@ -535,15 +560,26 @@ function initCubeBuffers() {
                 // position.
 
                 cubeVertexIndices = cubeVertexIndices.concat( [
-                    o+0,  o+1,  o+2,      o+0,  o+2,  o+3,    // front
-                    o+4,  o+5,  o+6,      o+4,  o+6,  o+7,    // back
-                    o+8,  o+9,  o+10,     o+8,  o+10, o+11,   // top
-                    o+12, o+13, o+14,     o+12, o+14, o+15,   // bottom
-                    o+16, o+17, o+18,     o+16, o+18, o+19,   // right
-                    o+20, o+21, o+22,     o+20, o+22, o+23    // left
+                    o+0,  o+1,  o+4,      o+1,  o+2,  o+4,    // front
+                    o+2,  o+3,  o+4,      o+3,  o+0,  o+4,
+
+                    o+5,  o+6,  o+9,      o+6,  o+7,  o+9,    // back
+                    o+7,  o+8,  o+9,      o+8,  o+5,  o+9,
+
+                    o+10,  o+11,  o+14,    o+11,  o+12, o+14,   // top
+                    o+12, o+13, o+14,     o+13,  o+10,  o+14,
+
+                    o+15, o+16, o+19,     o+16, o+17, o+19,   // bottom
+                    o+17, o+18, o+19,     o+18, o+15, o+19,
+
+                    o+20, o+21, o+24,     o+21, o+22, o+24,   // right
+                    o+22, o+23, o+24,     o+23, o+20, o+24,
+
+                    o+25, o+26, o+29,     o+26, o+27, o+29,    // left
+                    o+27, o+28, o+29,     o+28, o+25, o+29
                 ] );
 
-                o += 24;
+                o += 30;
                 // // Now send the element array to GL
 
             }
@@ -753,7 +789,7 @@ function drawCubes() {
     //setMatrixUniforms();
     //gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
     setMatrixUniforms();
-    gl.drawElements(gl.TRIANGLES, 36*nWalls, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, 72*nWalls, gl.UNSIGNED_SHORT, 0);
     mvPopMatrix();
 
     gl.bindTexture(gl.TEXTURE_2D, rttTexture);
@@ -769,7 +805,7 @@ function drawCubes() {
 //
 function initShaders() {
     viewShaderProgram = createProgram("shader-view-fs", "shader-view-vs");
-    shaderProgram = createProgram("shader-wall-fs", "shader-wall-vs");
+    shaderProgram = createProgram("shader-fs", "shader-vs");
 }
 
 function createProgram(fragmentShaderID, vertexShaderID) {
