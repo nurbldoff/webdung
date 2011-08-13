@@ -1,5 +1,5 @@
 <html><head>
-    <title>WebGL Demo</title>
+    <title>WebGL Dungeon</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="webgl.css" type="text/css">
     <script type="text/javascript" src="jquery-1.6.1.js"></script>
@@ -249,24 +249,31 @@
   </head>
 
   <body onload="start()">
-    <canvas id="glcanvas" width="500" height="500">
-      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
-    </canvas>
-
-    <font size="40">
     <table>
       <tr>
-        <td> <button id="turn_left" type="button">q</button> </td>
-        <td> <button id="move_forward" type="button">w</button> </td>
-        <td> <button id="turn_right" type="button">e</button> </td>
-       </tr>
-      <tr>
-        <td> <button id="move_left" type="button">a</button> </td>
-        <td> <button id="move_backward" type="button">s</button> </td>
-        <td> <button id="move_right" type="button">d</button> </td>
-       </tr>
+        <td>
+          <canvas id="glcanvas" width="500" height="500">
+            Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+          </canvas>
+        </td>
+        <td>
+          <p>If you see nothing, reload the page. If there is still nothing, or some error appears, clear your browser cache and try again.
+
+          <table>
+            <tr>
+              <td> <button id="turn_left" type="button">q</button> </td>
+              <td> <button id="move_forward" type="button">w</button> </td>
+              <td> <button id="turn_right" type="button">e</button> </td>
+            </tr>
+            <tr>
+              <td> <button id="move_left" type="button">a</button> </td>
+              <td> <button id="move_backward" type="button">s</button> </td>
+              <td> <button id="move_right" type="button">d</button> </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
     </table>
-    </font>
     <p>FPS:<span id="fps">0</span>
 
 </body></html>
