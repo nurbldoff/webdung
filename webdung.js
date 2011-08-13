@@ -122,6 +122,7 @@ function Player(startposition, startdirection) {
     ];
 
     this.moveForward = function(steps) {
+        //if(getMapTile(mapdata, this.position.x, this.position.y, this.position.z) != 0) {
         this.posDelta = this.steps[this.direction%8];
         this.position = this.position.add(this.posDelta);
         this.moveTime = this.moveSpeed;
@@ -256,8 +257,8 @@ var rttTexture;
 function initTextureFramebuffer() {
     rttFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-    rttFramebuffer.width = 512;
-    rttFramebuffer.height = 512;
+    rttFramebuffer.width = 500;
+    rttFramebuffer.height = 500;
 
     rttTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, rttTexture);
@@ -620,19 +621,25 @@ function initCubeBuffers() {
 // the job; it gets called each time a texture finishes loading.
 //
 function initTextures() {
-  cubeTexture = gl.createTexture();
-  cubeImage = new Image();
-  cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); }
-  cubeImage.src = "cube.png";
+    cubeTexture = gl.createTexture();
+    cubeImage = new Image();
+    cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); };
+    cubeImage.src = "cube.png";
+
+    lightmapTexture = gl.createTexture();
+    lightmapImage = new Image();
+    lightmapImage.onload = function() { handleTextureLoaded(lightmapImage, lightmapTexture); };
+    lightmapImage.src = "lightmap.png";
+
 }
 
 function handleTextureLoaded(image, texture) {
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 //
@@ -650,6 +657,7 @@ function drawScene() {
 
     // draw the "outer" scene
     //gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    gl.viewport(0, 0, 500, 500);
     drawSquare();
 
     // Update the rotation for the next draw, if it's time to do so.
@@ -672,7 +680,7 @@ function drawSquare() {
     gl.useProgram(viewShaderProgram);
     perspectiveMatrix = makePerspective(45, 1.0, 0.1, 100.0);
     loadIdentity();
-    mvTranslate([-0.0, 0.0, -2.0]);
+    mvTranslate([-0.0, 0.0, -1.5]);
 
     mvPushMatrix();
 
@@ -713,7 +721,7 @@ function drawCubes() {
     // and 100 units away from the camera.
 
     gl.useProgram(shaderProgram);
-    perspectiveMatrix = makePerspective(90, 1.0, 0.1, 100.0);
+    perspectiveMatrix = makePerspective(110, 1.0, 0.1, 100.0);
 
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
@@ -774,12 +782,22 @@ function drawCubes() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, lightmapTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSamplerLightmap"), 1);
+
 
     // Draw the cube.
 
