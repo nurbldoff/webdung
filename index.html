@@ -97,6 +97,7 @@
         surfaceCosine = abs(dot(normalize(vTransformedNormal.xyz), normalize(vVertex.xyz)));
 
         vec4 vCenter = uMVMatrix * vec4(aWorldPosition+aVertexNormal*0.5, 1.0);
+        vCenter.y = 0.0;
         highp vec3 a = cross( normalize(vCenter.xyz), normalize(vTransformedNormal.xyz));
 
         float centerCosine = abs(dot(normalize(vCenter.xyz), vTransformedNormal.xyz));
@@ -132,21 +133,37 @@
 
       uniform sampler2D uSampler, uSamplerLightmap;
 
+      vec4 getLight() {
+         vec2 lightmapPosition = vec2(((vWorldPosition.x+vVertexPosition.x+.5)/16.0+
+                       vWorldPosition.y)/4.0,
+                       ((vWorldPosition.z+vVertexPosition.z+0.5)-16.0)/16.0);
+         vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
+         if(vVertexPosition.y < 0.0) {
+            lightmapPosition.x -= 0.25;
+            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), -vVertexPosition.y);
+         } else {
+            lightmapPosition.x += 0.25;
+            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), vVertexPosition.y);
+         }
+      }
+
       void main(void) {
         //gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
         //float surfaceCosine2 = max(dot(vTransformedNormal.xyz, normalize(-vVertex).xyz), 0.0);
 
-        vec2 lightmapPosition = vec2((vWorldPosition.x+vVertexPosition.x+.5)/16.0,
+        vec2 lightmapPosition = vec2(((vWorldPosition.x+vVertexPosition.x+.5)/16.0+vWorldPosition.y)/4.0,
                                     ((vWorldPosition.z+vVertexPosition.z+0.5)-16.0)/16.0);
         //if(abs(vVertexPosition.y) < 0.1) {
         //lightmapPosition += vec2(vNormal.x/16.0, vNormal.z/16.0)*(0.5-abs(vVertexPosition.y));
         //}
-        vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
+        //vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
+        vec4 light = getLight();
         vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
         gl_FragColor = vec4(texelColor.rgb*light.rgb*(surfaceCosine*0.5+0.5), texelColor.a);
         //gl_FragColor = vec4(vec3(1.0, 1.0, 1.0)*light.rgb*(surfaceCosine*0.5+0.5), texelColor.a);
 
       }
+
     </script>
 
   <script id="shader-wall-vs" type="x-shader/x-vertex">
