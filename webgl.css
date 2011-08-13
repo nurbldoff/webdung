@@ -3,3 +3,7 @@ canvas {
 	-moz-box-shadow: black 2px 2px 2px;
 	background-color: black;
 }
+
+button {
+    font-size: xx-large;
+}
