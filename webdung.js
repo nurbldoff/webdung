@@ -25,8 +25,10 @@ var vertexNormalAttribute;
 var textureCoordAttribute;
 var perspectiveMatrix;
 
+var player;
 var mapdata;
 var nWalls = 0;
+
 
 //
 // start
@@ -55,6 +57,8 @@ function start() {
     mapdata = loadMap("map.png");
 
     if (gl) {
+        player = new Player(playerPos, playerDirection);
+
         initTextureFramebuffer();   // FBO init
         gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
         gl.clearDepth(1.0);                 // Clear everything
@@ -81,6 +85,14 @@ function start() {
         document.onkeydown = handleKeyDown;
         document.onkeyup = handleKeyUp;
 
+        $("#turn_left").click(function(event) { player.turnLeft(1); });
+        $("#turn_right").click(function(event) { player.turnRight(1); });
+        $("#move_forward").click(function(event) { player.moveForward(1); });
+        $("#move_backward").click(function(event) { player.moveBackward(1); });
+        $("#move_left").click(function(event) { player.moveLeft(1); });
+        $("#move_right").click(function(event) { player.moveRight(1); });
+
+
 
         var lastLoop = new Date();
 
@@ -101,7 +113,7 @@ function start() {
 var currentlyPressedKeys = {};
 var moveDelta = $V([0,0,0]);
 var playerPos = $V([2,1,19]);
-var playerDirection = 0;   // 0..7, 0 is in -Z direction
+var playerDirection = 3;   // 0..7, 0 is in -Z direction
 var filter=0;
 
 function Player(startposition, startdirection) {
@@ -168,8 +180,6 @@ function Player(startposition, startdirection) {
 
 }
 
-var player = new Player(playerPos, 0);
-
 function handleKeyDown(event) {
     currentlyPressedKeys[event.keyCode] = true;
 
@@ -225,7 +235,7 @@ function loadMap (filename) {
 }
 
 function getMapTile (mapdata, x, y, z) {
-    return mapdata[4*(32*3*y+32*z+x)+3];
+    return mapdata[4*(32*4*y+32*z+x)+3];
 }
 
 
@@ -359,7 +369,7 @@ function initCubeBuffers() {
 
     for(x=0; x<16; x++) {
         for(y=16; y<32;y++) {
-            for(z=0; z<3; z++) {
+            for(z=0; z<4; z++) {
 
             //console.log(getMapTile(mapdata, x, y, z));
             if(getMapTile(mapdata, x, y, z) > 0) {
