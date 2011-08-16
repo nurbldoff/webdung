@@ -54,59 +54,61 @@ function start() {
     initWebGL(canvas);      // Initialize the GL context
     // Only continue if WebGL is available and working
 
-    mapdata = loadMap("map.png");
+
 
     if (gl) {
-        player = new Player(playerPos, playerDirection);
+        loadMap("map.png", function() {
+            player = new Player(playerPos, playerDirection);
 
-        initTextureFramebuffer();   // FBO init
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-        gl.clearDepth(1.0);                 // Clear everything
-        gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-        gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+            initTextureFramebuffer();   // FBO init
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+            gl.clearDepth(1.0);                 // Clear everything
+            gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+            gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
-        // Initialize the shaders; this is where all the lighting for the
-        // vertices and so forth is established.
+            // Initialize the shaders; this is where all the lighting for the
+            // vertices and so forth is established.
 
-        initShaders();
+            initShaders();
 
-        // Here's where we call the routine that builds all the objects
-        // we'll be drawing.
+            // Here's where we call the routine that builds all the objects
+            // we'll be drawing.
 
-        initSquareBuffers();
-        initCubeBuffers();
+            initSquareBuffers();
+            initCubeBuffers();
 
-        // Next, load and set up the textures we'll be using.
+            // Next, load and set up the textures we'll be using.
 
-        initTextures();
+            initTextures();
 
-        // Set up to draw the scene periodically.
+            // Set up to draw the scene periodically.
 
-        document.onkeydown = handleKeyDown;
-        document.onkeyup = handleKeyUp;
+            document.onkeydown = handleKeyDown;
+            document.onkeyup = handleKeyUp;
 
-        $("#turn_left").click(function(event) { player.turnLeft(1); });
-        $("#turn_right").click(function(event) { player.turnRight(1); });
-        $("#move_forward").click(function(event) { player.moveForward(1); });
-        $("#move_backward").click(function(event) { player.moveBackward(1); });
-        $("#move_left").click(function(event) { player.moveLeft(1); });
-        $("#move_right").click(function(event) { player.moveRight(1); });
+            $("#turn_left").click(function(event) { player.turnLeft(1); });
+            $("#turn_right").click(function(event) { player.turnRight(1); });
+            $("#move_forward").click(function(event) { player.moveForward(1); });
+            $("#move_backward").click(function(event) { player.moveBackward(1); });
+            $("#move_left").click(function(event) { player.moveLeft(1); });
+            $("#move_right").click(function(event) { player.moveRight(1); });
 
 
 
-        var lastLoop = new Date();
+            var lastLoop = new Date();
 
-        (function animloop(){
-            var thisLoop = new Date();
-            var diff = thisLoop - lastLoop;
-            //var fps = 1000 / (thisLoop - lastLoop);
-            //console.log(diff);
-            setTimeout(function() {
-                drawScene();
-                requestAnimFrame(animloop, canvas);
-            }, 33-diff);  // I guess this doesn't really work, but it limits the cpu usage a bit
-            lastLoop = new Date();
-        })();
+            (function animloop(){
+                var thisLoop = new Date();
+                var diff = thisLoop - lastLoop;
+                //var fps = 1000 / (thisLoop - lastLoop);
+                //console.log(diff);
+                setTimeout(function() {
+                    drawScene();
+                    requestAnimFrame(animloop, canvas);
+                }, 33-diff);  // I guess this doesn't really work, but it limits the cpu usage a bit
+                lastLoop = new Date();
+            })();
+        });
     }
 }
 
@@ -221,17 +223,19 @@ function handleKeyUp(event) {
     currentlyPressedKeys[event.keyCode] = false;
 }
 
-function loadMap (filename) {
+function loadMap (filename, gamef) {
     var map_img = new Image();   // Create new img element
     map_img.src = filename; // Set source path
-    var buffer = document.createElement('canvas');
-    buffer.width = map_img.width;
-    buffer.height = map_img.height;
-    var ctx = buffer.getContext('2d');
-    ctx.drawImage(map_img, 0, 0);
-    var imgd = ctx.getImageData(0, 0, buffer.width, buffer.height);
-    var mapdata = imgd.data;
-    return mapdata;
+    map_img.onload = function() {
+        var buffer = document.createElement('canvas');
+        buffer.width = map_img.width;
+        buffer.height = map_img.height;
+        var ctx = buffer.getContext('2d');
+        ctx.drawImage(map_img, 0, 0);
+        var imgd = ctx.getImageData(0, 0, buffer.width, buffer.height);
+        mapdata = imgd.data;
+        gamef();
+    }
 }
 
 function getMapTile (mapdata, x, y, z) {
