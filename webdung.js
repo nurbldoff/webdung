@@ -96,8 +96,9 @@ function start() {
 
 
             var lastLoop = new Date();
-
+            i = 0;
             (function animloop(){
+                i+=1
                 var thisLoop = new Date();
                 var diff = thisLoop - lastLoop;
                 //var fps = 1000 / (thisLoop - lastLoop);
@@ -106,7 +107,9 @@ function start() {
                     drawScene();
                     requestAnimFrame(animloop, canvas);
                 }, 33-diff);  // I guess this doesn't really work, but it limits the cpu usage a bit
-                $("#fps").text(Math.round(1000/diff));
+                // if(i%10 == 0) {
+                //     $("#fps").text(Math.round(1000/diff);
+                // }
                 lastLoop = new Date();
 
             })();
