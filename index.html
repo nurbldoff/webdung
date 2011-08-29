@@ -72,7 +72,7 @@
 
   <script id="shader-vs" type="x-shader/x-vertex">
     #ifdef GL_ES
-    precision highp float;
+    precision mediump float;
     #endif
 
     attribute highp vec3 aVertexNormal;
@@ -83,11 +83,30 @@
     uniform highp mat4 uNormalMatrix;
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
+    uniform sampler2D uSampler, uSamplerLightmap;
 
-    varying highp vec4 vTransformedNormal, vVertex;
+    varying highp vec4 vTransformedNormal, vVertex, vLight;
     varying vec3 vVertexPosition, vWorldPosition, vNormal;
     varying highp vec2 vTextureCoord;
     varying highp float fogFactor, fogDistance, surfaceCosine;
+
+    vec4 getLight() {
+         vec2 lightmapPosition = vec2(((aWorldPosition.x+aVertexPosition.x+.5)/16.0+
+         aWorldPosition.y)/4.0,
+                       ((aWorldPosition.z+aVertexPosition.z+0.5)-16.0)/16.0);
+         vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
+
+         if(aVertexPosition.y < 0.0) {
+            lightmapPosition.x -= 0.25;
+            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), -aVertexPosition.y);
+         } else {
+            if(aVertexPosition.y > 0.0) {
+                lightmapPosition.x += 0.25;
+                return mix(light, texture2D(uSamplerLightmap, lightmapPosition), aVertexPosition.y);
+             }
+         }
+         return light;
+      }
 
     void main(void) {
         vVertex = uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
@@ -121,15 +140,16 @@
         vWorldPosition = aWorldPosition;
         vVertexPosition = aVertexPosition;
         vNormal = aVertexNormal;
+        //vLight = getLight();
     }
     </script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
     #ifdef GL_ES
-    precision highp float;
+    precision mediump float;
     #endif
       varying highp vec2 vTextureCoord;
-      varying highp vec4 vTransformedNormal, vVertex;
+      varying highp vec4 vTransformedNormal, vVertex, vLight;
       varying highp vec3 vWorldPosition, vVertexPosition, vNormal;
       varying highp float surfaceCosine;
       varying float fogFactor;
@@ -137,16 +157,20 @@
       uniform sampler2D uSampler, uSamplerLightmap;
 
       vec4 getLight() {
+         vec4 value;
          vec2 lightmapPosition = vec2(((vWorldPosition.x+vVertexPosition.x+.5)/16.0+
                        vWorldPosition.y)/4.0,
                        ((vWorldPosition.z+vVertexPosition.z+0.5)-16.0)/16.0);
          vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
          if(vVertexPosition.y < 0.0) {
             lightmapPosition.x -= 0.25;
-            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), -vVertexPosition.y);
+            value = texture2D(uSamplerLightmap, lightmapPosition);
+            return mix(light, value, -vVertexPosition.y);
          } else {
             lightmapPosition.x += 0.25;
-            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), vVertexPosition.y);
+            value = texture2D(uSamplerLightmap, lightmapPosition);
+            return mix(light, value, vVertexPosition.y);
+            //return mix(light, texture2D(uSamplerLightmap, lightmapPosition), vVertexPosition.y);
          }
       }
 
@@ -162,9 +186,10 @@
         //vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
         vec4 light = getLight();
         vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-        gl_FragColor = vec4(texelColor.rgb*light.rgb*(surfaceCosine*0.3+0.7), texelColor.a);
+
+        gl_FragColor = vec4(texelColor.rgb*light.rgb*(1.0-surfaceCosine*0.2), texelColor.a);
         //gl_FragColor = vec4(texelColor.rgb*light.rgb, texelColor.a);
-        //gl_FragColor = vec4(vec3(1.0, 1.0, 1.0)*light.rgb*(surfaceCosine*0.5+0.5), texelColor.a);
+        //gl_FragColor = vec4(vec3(1.0, 1.0, 1.0)*vLight.rgb*(surfaceCosine*0.5+0.5), texelColor.a);
 
       }
 
@@ -262,7 +287,7 @@
         </td>
         <td>
           <!-- <p>If you see nothing, reload the page. If there is still nothing, or some error appears, clear your browser cache and try again. -->
-          <p>May take a few seconds to load...
+          <p>May take a few secwonds to load...
 
           <table>
             <tr>
