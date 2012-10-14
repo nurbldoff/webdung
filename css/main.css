@@ -18,5 +18,7 @@ canvas {
 }
 
 button {
-    font-size: xx-large;
+    font-size: 75pt;
+    background: #505050;
+    color: #a0a0a0;
 }
