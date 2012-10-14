@@ -1,18 +1,54 @@
 <html><head>
-    <title>WebGL Demo</title>
+    <title>WebGL Dungeon</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" href="webgl.css" type="text/css">
-    <script src="sylvester.js" type="text/javascript"></script>
-    <script src="glUtils.js" type="text/javascript"></script>
-    <script src="webdung.js" type="text/javascript"></script>
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+    <META HTTP-EQUIV="Expires" CONTENT="-1">
 
-    <!-- Fragment shader program -->
+    <link rel="stylesheet" href="css/main.css" type="text/css">
+  </head>
+
+  <body onload="Dungeon.start({x: 500, y:500})">
+    <table>
+      <tr>
+        <td>
+          <canvas id="glcanvas" width="500" height="500">
+            Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+          </canvas>
+        </td>
+        <td>
+          <p id="loading_text">Loading...</p>
+
+          <table>
+            <tr>
+              <td> <button id="turn_left" type="button">q</button> </td>
+              <td> <button id="move_forward" type="button">w</button> </td>
+              <td> <button id="turn_right" type="button">e</button> </td>
+            </tr>
+            <tr>
+              <td> <button id="move_left" type="button">a</button> </td>
+              <td> <button id="move_backward" type="button">s</button> </td>
+              <td> <button id="move_right" type="button">d</button> </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
 
 
+    <script src="js/libs/sylvester.js"></script>
+    <script src="js/sylvester_extras.js"></script>
 
-    <!-- Vertex shader program -->
+    <script src="js/utils.js"></script>
+    <script src="js/glcontext.js"></script>
 
-    <script id="shader-view-vs" type="x-shader/x-vertex">
+    <script src="js/objects.js"></script>
+    <script src="js/textures.js"></script>
+    <script src="js/scene.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/main.js"></script>
+
+    <script id="view-vs" type="x-shader/x-vertex">
       attribute highp vec3 aVertexNormal;
       attribute highp vec3 aVertexPosition;
       attribute highp vec2 aTextureCoord;
@@ -41,13 +77,13 @@
       }
     </script>
 
-    <script id="shader-view-fs" type="x-shader/x-fragment">
+    <script id="view-fs" type="x-shader/x-fragment">
       varying highp vec2 vTextureCoord;
       varying highp vec3 vLighting;
 
       uniform sampler2D uSampler;
 
-      highp float a = .25;
+      highp float a = .35;
       highp float x, y, p, p2, d;
 
       void main(void) {
@@ -63,63 +99,136 @@
 
         gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
       }
-    </script>
+  </script>
 
-  <script id="shader-wall-vs" type="x-shader/x-vertex">
+
+  <script id="cube-vs" type="x-shader/x-vertex">
     #ifdef GL_ES
-    precision highp float;
+    precision mediump float;
     #endif
-      attribute highp vec3 aVertexNormal;
-      attribute highp vec3 aVertexPosition;
-      attribute highp vec2 aTextureCoord;
-      attribute highp vec3 aWorldPosition;
 
-      uniform highp mat4 uNormalMatrix;
-      uniform highp mat4 uMVMatrix;
-      uniform highp mat4 uPMatrix;
+    attribute highp vec3 aVertexNormal;
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+    attribute highp vec3 aWorldPosition;
 
-      varying highp vec2 vTextureCoord;
-      varying highp vec3 vLighting;
+    uniform highp mat4 uNormalMatrix;
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform sampler2D uSampler, uSamplerLightmap;
 
-      void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
-        vTextureCoord = aTextureCoord;
+    varying highp vec4 vTransformedNormal, vVertex, vLight;
+    varying vec3 vVertexPosition, vWorldPosition, vNormal;
+    varying highp vec2 vTextureCoord;
+    varying highp float fogFactor, fogDistance, surfaceCosine;
 
-        // Apply lighting effect
+    vec4 getLight() {
+         vec2 lightmapPosition = vec2(((aWorldPosition.x+aVertexPosition.x+.5)/16.0+
+         aWorldPosition.y)/4.0,
+                       ((aWorldPosition.z+aVertexPosition.z+0.5)-16.0)/16.0);
+         vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
 
-        highp vec3 ambientLight = vec3(0.6, 0.6, 0.6);
-        highp vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
-        highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);
-
-        highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-
-        //highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-        highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-        vLighting = ambientLight + (directionalLightColor * directional);
+         if(aVertexPosition.y < 0.0) {
+            lightmapPosition.x -= 0.25;
+            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), -aVertexPosition.y);
+         } else {
+            if(aVertexPosition.y > 0.0) {
+                lightmapPosition.x += 0.25;
+                return mix(light, texture2D(uSamplerLightmap, lightmapPosition), aVertexPosition.y);
+             }
+         }
+         return light;
       }
+
+    void main(void) {
+        vVertex = uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
+        //if (vVertex.z < 0.0) {
+        //    vVertex.z = -log(-vVertex.z);
+        //}
+        gl_Position = uPMatrix * vVertex;
+
+        vTransformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+        surfaceCosine = abs(dot(normalize(vTransformedNormal.xyz), normalize(vVertex.xyz)));
+
+        vec4 vCenter = uMVMatrix * vec4(aWorldPosition+aVertexNormal*0.5, 1.0);
+        vCenter.y = 0.0;
+        highp vec3 a = cross( normalize(vCenter.xyz), normalize(vTransformedNormal.xyz));
+
+        float centerCosine = abs(dot(normalize(vCenter.xyz), vTransformedNormal.xyz));
+        vTextureCoord.x = aTextureCoord.x*0.25 + 0.25;
+        if (vTransformedNormal.y == 0.) {
+            if (centerCosine < 0.90) {
+                vTextureCoord.x = vTextureCoord.x-sign(a.y)*0.25;
+            }
+        } else {
+            vTextureCoord.x = vTextureCoord.x+0.5;
+        }
+        vTextureCoord.y = aTextureCoord.y;
+
+        fogDistance = length(vVertex);
+        fogFactor = exp2( -.15 * .15 * fogDistance*fogDistance );
+        fogFactor = clamp(fogFactor, 0.0, 1.0);
+
+        vWorldPosition = aWorldPosition;
+        vVertexPosition = aVertexPosition;
+        vNormal = aVertexNormal;
+        //vLight = getLight();
+    }
     </script>
 
-  <script id="shader-wall-fs" type="x-shader/x-fragment">
+<script id="cube-fs" type="x-shader/x-fragment">
     #ifdef GL_ES
-    precision highp float;
+    precision mediump float;
     #endif
-
       varying highp vec2 vTextureCoord;
-      varying highp vec3 vLighting;
+      varying highp vec4 vTransformedNormal, vVertex, vLight;
+      varying highp vec3 vWorldPosition, vVertexPosition, vNormal;
+      varying highp float surfaceCosine;
+      varying float fogFactor;
 
-      uniform sampler2D uSampler;
+      uniform sampler2D uSampler, uSamplerLightmap;
+
+      vec4 getLight() {
+         vec4 value;
+         vec2 lightmapPosition = vec2(((vWorldPosition.x+vVertexPosition.x+.5)/16.0+
+                       vWorldPosition.y)/4.0,
+                       ((vWorldPosition.z+vVertexPosition.z+0.5)-16.0)/16.0);
+         vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
+         if(vVertexPosition.y < 0.0) {
+            lightmapPosition.x -= 0.25;
+            value = texture2D(uSamplerLightmap, lightmapPosition);
+            return mix(light, value, -vVertexPosition.y);
+         } else {
+            lightmapPosition.x += 0.25;
+            value = texture2D(uSamplerLightmap, lightmapPosition);
+            return mix(light, value, vVertexPosition.y);
+            //return mix(light, texture2D(uSamplerLightmap, lightmapPosition), vVertexPosition.y);
+         }
+      }
 
       void main(void) {
+        //gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+        //float surfaceCosine2 = max(dot(vTransformedNormal.xyz, normalize(-vVertex).xyz), 0.0);
+
+        vec2 lightmapPosition = vec2(((vWorldPosition.x+vVertexPosition.x+.5)/16.0+vWorldPosition.y)/4.0,
+                                    ((vWorldPosition.z+vVertexPosition.z+0.5)-16.0)/16.0);
+        //if(abs(vVertexPosition.y) < 0.1) {
+        //lightmapPosition += vec2(vNormal.x/16.0, vNormal.z/16.0)*(0.5-abs(vVertexPosition.y));
+        //}
+        //vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
+        vec4 light = getLight();
         vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
 
-        gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
+        gl_FragColor = vec4(texelColor.rgb*light.rgb*(1.0-surfaceCosine*0.2), texelColor.a);
+        //gl_FragColor = vec4(texelColor.rgb*light.rgb, texelColor.a);
+        //gl_FragColor = vec4(vec3(1.0, 1.0, 1.0)*vLight.rgb*(surfaceCosine*0.5+0.5), texelColor.a);
+
       }
+
     </script>
-  </head>
 
-  <body onload="start()">
-    <canvas id="glcanvas" width="500" height="500">
-      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
-    </canvas>
 
-</body></html>
+</body>
+
+</html>
+>>>>>>> gh-pages

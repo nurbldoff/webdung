@@ -1,0 +1,5 @@
+A webgl dungeon in the "eye of the beholder"/"dungeonmaster" style.
+Movement with w,a,s,d+q,e to turn, or onscreen buttons. Movement is
+step wise, so don't hold the keys down or you will break it :)
+
+Requires a webgl enabled browser, such as a recent version of chrome.

@@ -1,0 +1,22 @@
+body { background: #000000;
+       -webkit-user-select: none;
+       -khtml-user-select: none;
+       -moz-user-select: none;
+       -o-user-select: none;
+       user-select: none;
+       height: 100%;
+     }
+
+p {
+    color: white;
+}
+
+canvas {
+	border: 2px solid black;
+	-moz-box-shadow: black 2px 2px 2px;
+	background-color: black;
+}
+
+button {
+    font-size: xx-large;
+}
