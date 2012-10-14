@@ -9,7 +9,6 @@ Dungeon.start = function (view_size) {
         gl = glUtils.init_webgl(canvas),
         player_startpos = $V([2,1,19]), player_startdir = 3;
 
-
     if (gl) {
         var on_map_loaded = function (mapdata) {
             // The context holds the model-view and perspective matrices
@@ -17,7 +16,7 @@ Dungeon.start = function (view_size) {
 
             // The dungeon view is drawn to a framebuffer, which in turn is
             // used as a texture on the viewplane. This enables visual effects.
-            var framebuffer = glUtils.init_framebuffer(gl);   // FBO init
+            var framebuffer = glUtils.init_framebuffer(gl, view_size);   // FBO init
             var fbtexture = glUtils.init_framebuffer_texture(gl, framebuffer);
 
             // Load textures.

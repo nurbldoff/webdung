@@ -35,13 +35,13 @@ glUtils.init_webgl = function (canvas) {
 };
 
 
-glUtils.init_framebuffer = function (gl) {
+glUtils.init_framebuffer = function (gl, size) {
     var rttFramebuffer;
 
     rttFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-    rttFramebuffer.width = 500;
-    rttFramebuffer.height = 500;
+    rttFramebuffer.width = size.x;
+    rttFramebuffer.height = size.y;
 
     return rttFramebuffer;
 };
