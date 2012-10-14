@@ -9,8 +9,8 @@ Dungeon.Player = function (startposition, startdirection) {
 
     this.stepTime = 0;
     this.turnTime = 0;
-    this.moveSpeed = 10;
-    this.turnSpeed = 10;
+    this.moveSpeed = 30;
+    this.turnSpeed = 15;
 
     this.steps = [
         $V([0,0,-1]), $V([1,0,-1]), $V([1,0,0]), $V([1,0,1]),
