@@ -1,10 +1,10 @@
 var Dungeon = Dungeon || {};
 
 Dungeon.Player = function (startposition, startdirection) {
-    this.position = startposition;
+    this.position = vec3.create(startposition);
     this.direction = startdirection;
 
-    this.posDelta = $V([0,0,0]);
+    this.posDelta = vec3.create([0,0,0]);
     this.dirDelta = 0;
 
     this.stepTime = 0;
@@ -13,33 +13,33 @@ Dungeon.Player = function (startposition, startdirection) {
     this.turnSpeed = 15;
 
     this.steps = [
-        $V([0,0,-1]), $V([1,0,-1]), $V([1,0,0]), $V([1,0,1]),
-        $V([0,0,1]), $V([-1,0,1]), $V([-1,0,0]), $V([-1,0,-1])
+        vec3.create([0,0,-1]), vec3.create([1,0,-1]), vec3.create([1,0,0]), vec3.create([1,0,1]),
+        vec3.create([0,0,1]), vec3.create([-1,0,1]), vec3.create([-1,0,0]), vec3.create([-1,0,-1])
     ];
 
     this.moveForward = function(steps) {
         //if(getMapTile(mapdata, this.position.x, this.position.y, this.position.z) != 0) {
         this.posDelta = this.steps[this.direction%8];
-        this.position = this.position.add(this.posDelta);
+        vec3.add(this.position, this.posDelta);
         this.moveTime = this.moveSpeed;
         //this.posDelta = $V([0,0,0]);
     };
 
     this.moveBackward = function(steps) {
         this.posDelta = this.steps[(this.direction+4)%8];
-        this.position = this.position.add(this.posDelta);
+        vec3.add(this.position, this.posDelta);
         this.moveTime = this.moveSpeed;
     };
 
     this.moveLeft = function(steps) {
         this.posDelta = this.steps[(this.direction+6)%8];
-        this.position = this.position.add(this.posDelta);
+        vec3.add(this.position, this.posDelta);
         this.moveTime = this.moveSpeed;
     };
 
     this.moveRight = function(steps) {
         this.posDelta = this.steps[(this.direction+2)%8];
-        this.position = this.position.add(this.posDelta);
+        vec3.add(this.position, this.posDelta);
         this.moveTime = this.moveSpeed;
     };
 

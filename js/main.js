@@ -7,7 +7,7 @@ var Dungeon = Dungeon || {};
 Dungeon.start = function (view_size) {
     var canvas = document.getElementById("glcanvas"),
         gl = glUtils.init_webgl(canvas),
-        player_startpos = $V([2,1,19]), player_startdir = 3;
+        player_startpos = [2,1,19], player_startdir = 3;
 
     if (gl) {
         var on_map_loaded = function (mapdata) {

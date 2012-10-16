@@ -27,10 +27,11 @@ Dungeon.draw_viewplane = function (gl, context, buffer, texture, shader) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.useProgram(shader);
-    glUtils.loadIdentity(context);
-    glUtils.mvTranslate(context, [-0.0, 0.0, -1.5]);
+    context.mvMatrix = mat4.identity();
+    mat4.translate(context.mvMatrix, vec3.create([-0.0, 0.0, -1.5]));
     // FIXME: this seems pointless to do each frame
-    context.perspectiveMatrix = glUtils.makePerspective(45, 1.0, 0.1, 100.0);
+    //context.perspectiveMatrix = glUtils.makePerspective(45, 1.0, 0.1, 100.0);
+    context.perspectiveMatrix = mat4.perspective(45, 1.0, 0.1, 100);
     glUtils.mvPushMatrix(context);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer.vertices);
@@ -67,34 +68,35 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
     // and 100 units away from the camera.
 
     gl.useProgram(shader);
-    context.perspectiveMatrix = glUtils.makePerspective(110, 1.0, 0.1, 100.0);
+    context.perspectiveMatrix = mat4.perspective(110, 1.0, 0.1, 100.0);
 
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
-    glUtils.loadIdentity(context);
+    context.mvMatrix = mat4.identity();
 
     // Save the current matrix
     glUtils.mvPushMatrix(context);
 
-    var subdelta;
+    var subdelta, tmpvec = vec3.create();
     if(player.turnTime > 0) {
         subdelta = player.dirDelta*(player.turnTime/player.turnSpeed);
         player.turnTime -= 1;
-        glUtils.mvRotate(context, (player.direction-subdelta)*45, [0, 1, 0]);
+        mat4.rotate(context.mvMatrix, glUtils.radians(player.direction-subdelta)*45, context.yaxis);
         console.log("turn");
     } else {
         player.dirDelta = 0;
-        glUtils.mvRotate(context, player.direction*45, [0, 1, 0]);
+        mat4.rotate(context.mvMatrix, glUtils.radians(player.direction*45), context.yaxis);
     }
     // translate accordingly
     if(player.moveTime > 0) {
-        subdelta = player.posDelta.x(-player.moveTime/player.moveSpeed);
+        subdelta = vec3.create();
+        vec3.scale(player.posDelta, -player.moveTime/player.moveSpeed, subdelta);
         //player.position = player.postion.add(subdelta);
         player.moveTime -= 1;
-        glUtils.mvTranslate(context, player.position.add(subdelta).multiply(-1).elements);
+        mat4.translate(context.mvMatrix, vec3.scale(vec3.add(subdelta, player.position), -1));
     } else {
-        player.posDelta=$V([0,0,0]);
-        glUtils.mvTranslate(context, player.position.multiply(-1).elements);
+        player.posDelta = vec3.create([0,0,0]);
+        mat4.translate(context.mvMatrix, vec3.scale(player.position, -1, tmpvec));
     }
 
 
