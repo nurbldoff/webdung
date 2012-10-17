@@ -61,13 +61,10 @@ Dungeon.draw_viewplane = function (gl, context, buffer, texture, shader) {
 
 Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, player) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(shader);
 
     // Establish the perspective with which we want to view the
-    // scene. Our field of view is 45 degrees, with a width/height
-    // ratio of 640:480, and we only want to see objects between 0.1 units
-    // and 100 units away from the camera.
-
-    gl.useProgram(shader);
+    // scene. 
     context.perspectiveMatrix = mat4.perspective(110, 1.0, 0.1, 100.0);
 
     // Set the drawing position to the "identity" point, which is
@@ -75,7 +72,7 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
     context.mvMatrix = mat4.identity();
 
     // Save the current matrix
-    glUtils.mvPushMatrix(context);
+    context.push_matrix();
 
     var subdelta, tmpvec = vec3.create();
     if(player.turnTime > 0) {
@@ -95,7 +92,7 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
         player.moveTime -= 1;
         mat4.translate(context.mvMatrix, vec3.scale(vec3.add(subdelta, player.position), -1));
     } else {
-        player.posDelta = vec3.create([0,0,0]);
+        vec3.set(player.posDelta, [0,0,0]);
         mat4.translate(context.mvMatrix, vec3.scale(player.position, -1, tmpvec));
     }
 
@@ -149,5 +146,5 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
     glUtils.setMatrixUniforms(gl, context, shader);
 
     gl.drawElements(gl.TRIANGLES, 36*buffers.n_walls, gl.UNSIGNED_SHORT, 0);
-    glUtils.mvPopMatrix(context);
+    context.pop_matrix();
 };
