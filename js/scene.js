@@ -140,14 +140,14 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
 
 
     // Draw the cube.
-
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertex_indices);
+
 
     // mvTranslate([x*2, 0.0, y*2]);
     //setMatrixUniforms();
     //gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
     glUtils.setMatrixUniforms(gl, context, shader);
 
-    gl.drawElements(gl.TRIANGLES, 72*buffers.n_walls, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, 36*buffers.n_walls, gl.UNSIGNED_SHORT, 0);
     glUtils.mvPopMatrix(context);
-}
+};

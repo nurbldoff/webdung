@@ -7,35 +7,38 @@ var Dungeon = Dungeon || {};
 Dungeon.start = function (view_size) {
     var canvas = document.getElementById("glcanvas"),
         gl = glUtils.init_webgl(canvas),
-        player_startpos = [2,1,19], player_startdir = 3;
+        player_startpos = [2, 1, 19], player_startdir = 3;
 
     if (gl) {
+        // The context holds the model-view and perspective matrices
+        var context = new Dungeon.GLContext();
+        
+        // The dungeon view is drawn to a framebuffer, which in turn is
+        // used as a texture on the viewplane. This enables visual effects.
+        var framebuffer = glUtils.init_framebuffer(gl, view_size);   // FBO init
+        var fbtexture = glUtils.init_framebuffer_texture(gl, framebuffer);
+
+        // Load textures.
+        var cube_texture = Dungeon.init_texture(gl, "images/cube.png");
+        var lightmap_texture = Dungeon.init_texture(gl, "images/lightmap.png");
+        
+        // Compile shaders
+        var shaders = glUtils.init_shaders(gl, ["cube", "view"]);
+        
+        // The player
+        var start_pos = player_startpos;
+        var start_direction = player_startdir;   // 0..7, 0 is in -Z direction
+        var player = new Dungeon.Player(start_pos, start_direction);
+        Dungeon.setup_input(player);
+
         var on_map_loaded = function (mapdata) {
-            // The context holds the model-view and perspective matrices
-            var context = new Dungeon.GLContext();
-
-            // The dungeon view is drawn to a framebuffer, which in turn is
-            // used as a texture on the viewplane. This enables visual effects.
-            var framebuffer = glUtils.init_framebuffer(gl, view_size);   // FBO init
-            var fbtexture = glUtils.init_framebuffer_texture(gl, framebuffer);
-
-            // Load textures.
-            var cube_texture = Dungeon.init_texture(gl, "images/cube.png");
-            var lightmap_texture = Dungeon.init_texture(gl, "images/lightmap.png");
-
-            // Compile shaders
-            var shaders = glUtils.init_shaders(gl, ["cube", "view"]);
-
             // Generate object buffers
             var view_buffers = Dungeon.init_view_buffers(gl);
-            var cube_buffers = Dungeon.init_cube_buffers(gl, mapdata);
+            Dungeon.init_map(gl, ["cube"], mapdata, run.bind(this, view_buffers));
+            //var cube_buffers = Dungeon.init_map_buffers(gl, mapdata);
+        };
 
-            // The player
-            var start_pos = player_startpos;
-            var start_direction = player_startdir;   // 0..7, 0 is in -Z direction
-            var player = new Dungeon.Player(start_pos, start_direction);
-            Dungeon.setup_input(player);
-
+        var run = function (view_buffers, cube_buffers) {
             glUtils.prepare_view(gl);
             var loading_text = document.getElementById("loading_text");
             loading_text.parentNode.removeChild(loading_text);
@@ -49,6 +52,9 @@ Dungeon.start = function (view_size) {
                 requestAnimFrame(animloop, canvas);
             })();
         };
+
+        // Load meshes
+
 
         // Load map
         Dungeon.load_map("images/map.png", on_map_loaded);
@@ -82,3 +88,4 @@ Dungeon.setup_input = function (player) {
     document.getElementById("move_left").onclick = function(event) { player.moveLeft(1); };
     document.getElementById("move_right").onclick = function(event) { player.moveRight(1); };
 };
+

@@ -1,5 +1,16 @@
 var Dungeon = Dungeon || {};
 
+
+Dungeon.init_map = function (gl, meshfiles, mapdata, callback) {
+    var n = 0;
+    var on_loaded = function (data) {
+        callback(Dungeon.init_map_buffers(gl, new Mesh(data), mapdata));
+    };
+    glUtils.load_obj_file("meshes/cube.obj", on_loaded);
+    //glUtils.load_threejs_files(meshfiles, on_loaded);
+};
+
+
 Dungeon.init_view_buffers = function (gl) {
     var buffers = {};
 
@@ -60,6 +71,71 @@ Dungeon.init_view_buffers = function (gl) {
 
     return buffers;
 };
+
+
+Dungeon.init_map_buffers = function (gl, mesh, mapdata) {
+    console.log(mesh);
+
+    var buffers = {},
+        vertices = [],
+        world_positions = [],
+        texture_coords = [],
+        vertex_normals = [],
+        vertex_indices = [];
+
+    var x, y, z;
+    var o = 0;
+    var n_walls = 0;
+
+    for(x=0; x<16; x++) {
+        for(y=16; y<32;y++) {
+            for(z=0; z<4; z++) {
+                if(Dungeon.getMapTile(mapdata, x, y, z) > 0) {
+
+                    vertices.push.apply( vertices, mesh.vertices );
+                    for (i=0; i<mesh.indices.length; i++) {
+                        world_positions.push.apply( world_positions, [x,z,y]);
+                    }
+                    texture_coords.push.apply( texture_coords, mesh.textures );
+                    vertex_normals.push.apply( vertex_normals, mesh.vertexNormals);
+                    for (i=0; i<mesh.indices.length; i++) {
+                        vertex_indices.push( mesh.indices[i] + n_walls*mesh.vertices.length/3 );
+                    }
+                    n_walls++;
+                }
+            }
+        }
+    }
+    buffers.n_walls = n_walls;
+    console.log("buffers", buffers, vertices, world_positions);
+
+    buffers.vertices = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    buffers.world_positions = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world_positions);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(world_positions), gl.STATIC_DRAW);
+
+    buffers.vertex_normals = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex_normals);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertex_normals),
+                  gl.STATIC_DRAW);
+
+    buffers.texture_coords = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture_coords);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texture_coords),
+                  gl.STATIC_DRAW);
+
+    buffers.vertex_indices = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertex_indices);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+                  new Uint16Array(vertex_indices), gl.STATIC_DRAW);
+
+    return buffers;
+};
+
+
 
 
 Dungeon.init_cube_buffers = function (gl, mapdata) {
@@ -306,8 +382,8 @@ Dungeon.init_cube_buffers = function (gl, mapdata) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex_normals);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertex_normals),
                   gl.STATIC_DRAW);
-
     buffers.texture_coords = gl.createBuffer();
+
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture_coords);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texture_coords),
                   gl.STATIC_DRAW);

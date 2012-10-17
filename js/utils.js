@@ -248,3 +248,19 @@ glUtils.mvPopMatrix = function (c) {
 glUtils.radians = function (degrees) {
     return degrees * Math.PI / 180.0;
 };
+
+glUtils.load_threejs_files = function (names, callback) {
+    var meshes = {}, n = 0;
+    var on_loaded = function (name, data) {
+        meshes[name] = data;
+        n++;
+        if (n === names.length) callback(meshes);
+    };
+    for (var i=0; i<names.length; i++) {
+        $.getJSON("meshes/"+names[i]+".js", on_loaded.bind(this, names[i]));
+    }
+};
+
+glUtils.load_obj_file = function (filename, callback) {
+    $("<div>").load(filename, null, callback);
+};
