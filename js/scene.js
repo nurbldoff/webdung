@@ -1,5 +1,22 @@
 var Dungeon = Dungeon || {};
 
+
+Dungeon.setup_buffers = function (gl, shader, buffer) {
+    gl.useProgram(shader);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer.vertices);
+    gl.vertexAttribPointer(shader.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer.texture_coords);
+    gl.vertexAttribPointer(shader.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    // Bind the normals buffer to the shader attribute.
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer.vertex_normals);
+    gl.vertexAttribPointer(shader.vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+};
+
+
 //
 // drawScene
 //
@@ -12,7 +29,7 @@ Dungeon.draw_scene = function (gl, context, size, framebuffer, fbtexture,
 
     // Draw the dungeon into the framebuffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-    Dungeon.draw_cubes(gl, context, cube_buffers, cube_texture, shaders.cube,
+    Dungeon.draw_map(gl, context, cube_buffers, cube_texture, shaders.cube,
                         lightmap, player);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -30,9 +47,8 @@ Dungeon.draw_viewplane = function (gl, context, buffer, texture, shader) {
     context.mvMatrix = mat4.identity();
     mat4.translate(context.mvMatrix, vec3.create([-0.0, 0.0, -1.5]));
     // FIXME: this seems pointless to do each frame
-    //context.perspectiveMatrix = glUtils.makePerspective(45, 1.0, 0.1, 100.0);
     context.perspectiveMatrix = mat4.perspective(45, 1.0, 0.1, 100);
-    glUtils.mvPushMatrix(context);
+    context.push_matrix();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer.vertices);
     gl.vertexAttribPointer(shader.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -56,16 +72,17 @@ Dungeon.draw_viewplane = function (gl, context, buffer, texture, shader) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer.vertex_indices);
     glUtils.setMatrixUniforms(gl, context, shader);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    glUtils.mvPopMatrix(context);
+    context.pop_matrix();
 };
 
-Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, player) {
+Dungeon.draw_map = function (gl, context, buffers, texture, shader, lightmap, player) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(shader);
 
     // Establish the perspective with which we want to view the
-    // scene. 
+    // scene.
     context.perspectiveMatrix = mat4.perspective(110, 1.0, 0.1, 100.0);
+    //context.perspectiveMatrix = glUtils.makePerspective(110, 1.0, 0.1, 100.0, 0.15);
 
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
@@ -74,17 +91,22 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
     // Save the current matrix
     context.push_matrix();
 
+    // Offset the camera a bit from the center
+    mat4.translate(context.mvMatrix, vec3.create([0,-0.1,-0.25]));
+    mat4.rotate(context.mvMatrix, glUtils.radians(7), context.xaxis);
+
+    // Put the camera where the player is
     var subdelta, tmpvec = vec3.create();
     if(player.turnTime > 0) {
         subdelta = player.dirDelta*(player.turnTime/player.turnSpeed);
         player.turnTime -= 1;
-        mat4.rotate(context.mvMatrix, glUtils.radians(player.direction-subdelta)*45, context.yaxis);
+        mat4.rotate(context.mvMatrix, glUtils.radians(player.direction-subdelta)*90, context.yaxis);
         console.log("turn");
     } else {
         player.dirDelta = 0;
-        mat4.rotate(context.mvMatrix, glUtils.radians(player.direction*45), context.yaxis);
+        mat4.rotate(context.mvMatrix, glUtils.radians(player.direction*90), context.yaxis);
     }
-    // translate accordingly
+
     if(player.moveTime > 0) {
         subdelta = vec3.create();
         vec3.scale(player.posDelta, -player.moveTime/player.moveSpeed, subdelta);
@@ -96,8 +118,7 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
         mat4.translate(context.mvMatrix, vec3.scale(player.position, -1, tmpvec));
     }
 
-
-    // Draw the cube by binding the array buffer to the cube's vertices
+    // Draw the map by binding the array buffer to the cube's vertices
     // array, setting attributes, and pushing it to GL.
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
     gl.vertexAttribPointer(shader.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -117,26 +138,26 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
 
     // Specify the texture to map onto the faces.
 
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    gl.uniform1i(gl.getUniformLocation(shader, "uSampler"), 0);
+    gl.uniform1i(gl.getUniformLocation(shader, "uSampler"), 1);
 
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, lightmap);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    gl.uniform1i(gl.getUniformLocation(shader, "uSamplerLightmap"), 1);
+    gl.uniform1i(gl.getUniformLocation(shader, "uSamplerLightmap"), 2);
 
 
-    // Draw the cube.
+    // Draw the map.
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertex_indices);
 
 
@@ -145,6 +166,6 @@ Dungeon.draw_cubes = function (gl, context, buffers, texture, shader, lightmap, 
     //gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
     glUtils.setMatrixUniforms(gl, context, shader);
 
-    gl.drawElements(gl.TRIANGLES, 36*buffers.n_walls, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, buffers.n_indices, gl.UNSIGNED_SHORT, 0);
     context.pop_matrix();
 };

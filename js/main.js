@@ -12,7 +12,7 @@ Dungeon.start = function (view_size) {
     if (gl) {
         // The context holds the model-view and perspective matrices
         var context = new Dungeon.GLContext();
-        
+
         // The dungeon view is drawn to a framebuffer, which in turn is
         // used as a texture on the viewplane. This enables visual effects.
         var framebuffer = glUtils.init_framebuffer(gl, view_size);   // FBO init
@@ -21,10 +21,10 @@ Dungeon.start = function (view_size) {
         // Load textures.
         var cube_texture = Dungeon.init_texture(gl, "images/cube.png");
         var lightmap_texture = Dungeon.init_texture(gl, "images/lightmap.png");
-        
+
         // Compile shaders
         var shaders = glUtils.init_shaders(gl, ["cube", "view"]);
-        
+
         // The player
         var start_pos = player_startpos;
         var start_direction = player_startdir;   // 0..7, 0 is in -Z direction
@@ -42,6 +42,8 @@ Dungeon.start = function (view_size) {
             glUtils.prepare_view(gl);
             var loading_text = document.getElementById("loading_text");
             loading_text.parentNode.removeChild(loading_text);
+
+            Dungeon.setup_buffers(gl, shaders.view, view_buffers);
 
             // Main loop
             (function animloop(){
@@ -88,4 +90,3 @@ Dungeon.setup_input = function (player) {
     document.getElementById("move_left").onclick = function(event) { player.moveLeft(1); };
     document.getElementById("move_right").onclick = function(event) { player.moveRight(1); };
 };
-

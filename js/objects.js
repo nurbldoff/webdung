@@ -6,7 +6,7 @@ Dungeon.init_map = function (gl, meshfiles, mapdata, callback) {
     var on_loaded = function (data) {
         callback(Dungeon.init_map_buffers(gl, new Mesh(data), mapdata));
     };
-    glUtils.load_obj_file("meshes/cube.obj", on_loaded);
+    glUtils.load_file("meshes/cube.obj", on_loaded);
     //glUtils.load_threejs_files(meshfiles, on_loaded);
 };
 
@@ -37,13 +37,11 @@ Dungeon.init_view_buffers = function (gl) {
         0.0,  0.0,  1.0,
         0.0,  0.0,  1.0
     ];
-
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square_vertexNormals),
                   gl.STATIC_DRAW);
 
     buffers.texture_coords = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture_coords);
-
     var square_textureCoordinates = [
         // Front
         1.0,  1.0,
@@ -51,12 +49,11 @@ Dungeon.init_view_buffers = function (gl) {
         1.0,  0.0,
         0.0,  0.0
     ];
-
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square_textureCoordinates),
                   gl.STATIC_DRAW);
 
     buffers.vertex_indices = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertex_indices);
+    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.vertex_indices);
 
     // This array defines each face as two triangles, using the
     // indices into the vertex array to specify each triangle's
@@ -86,6 +83,7 @@ Dungeon.init_map_buffers = function (gl, mesh, mapdata) {
     var x, y, z;
     var o = 0;
     var n_walls = 0;
+    buffers.n_indices=0;
 
     for(x=0; x<16; x++) {
         for(y=16; y<32;y++) {
@@ -100,6 +98,7 @@ Dungeon.init_map_buffers = function (gl, mesh, mapdata) {
                     vertex_normals.push.apply( vertex_normals, mesh.vertexNormals);
                     for (i=0; i<mesh.indices.length; i++) {
                         vertex_indices.push( mesh.indices[i] + n_walls*mesh.vertices.length/3 );
+                        buffers.n_indices++;
                     }
                     n_walls++;
                 }
@@ -107,7 +106,6 @@ Dungeon.init_map_buffers = function (gl, mesh, mapdata) {
         }
     }
     buffers.n_walls = n_walls;
-    console.log("buffers", buffers, vertices, world_positions);
 
     buffers.vertices = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);

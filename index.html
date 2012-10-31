@@ -124,24 +124,6 @@ void main(void) {
     varying highp vec2 vTextureCoord;
     varying highp float fogFactor, fogDistance, surfaceCosine;
 
-    vec4 getLight() {
-         vec2 lightmapPosition = vec2(((aWorldPosition.x+aVertexPosition.x+.5)/16.0+
-         aWorldPosition.y)/4.0,
-                       ((aWorldPosition.z+aVertexPosition.z+0.5)-16.0)/16.0);
-         vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
-
-         if(aVertexPosition.y < 0.0) {
-            lightmapPosition.x -= 0.25;
-            return mix(light, texture2D(uSamplerLightmap, lightmapPosition), -aVertexPosition.y);
-         } else {
-            if(aVertexPosition.y > 0.0) {
-                lightmapPosition.x += 0.25;
-                return mix(light, texture2D(uSamplerLightmap, lightmapPosition), aVertexPosition.y);
-             }
-         }
-         return light;
-      }
-
     void main(void) {
         vVertex = uMVMatrix * vec4(aVertexPosition+aWorldPosition, 1.0);
         //if (vVertex.z < 0.0) {
@@ -160,7 +142,7 @@ void main(void) {
         vTextureCoord.x = aTextureCoord.x*0.25 + 0.25;
         if (vTransformedNormal.y == 0.) {
             if (centerCosine < 0.90) {
-                vTextureCoord.x = vTextureCoord.x-sign(a.y)*0.25;
+                vTextureCoord.x = vTextureCoord.x+sign(a.y)*0.25;
             }
         } else {
             vTextureCoord.x = vTextureCoord.x+0.5;
@@ -209,22 +191,10 @@ void main(void) {
       }
 
       void main(void) {
-        //gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-        //float surfaceCosine2 = max(dot(vTransformedNormal.xyz, normalize(-vVertex).xyz), 0.0);
-
-        vec2 lightmapPosition = vec2(((vWorldPosition.x+vVertexPosition.x+.5)/16.0+vWorldPosition.y)/4.0,
-                                    ((vWorldPosition.z+vVertexPosition.z+0.5)-16.0)/16.0);
-        //if(abs(vVertexPosition.y) < 0.1) {
-        //lightmapPosition += vec2(vNormal.x/16.0, vNormal.z/16.0)*(0.5-abs(vVertexPosition.y));
-        //}
-        //vec4 light = texture2D(uSamplerLightmap, lightmapPosition);
         vec4 light = getLight();
         vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
 
-        gl_FragColor = vec4(texelColor.rgb*light.rgb*(1.0-surfaceCosine*0.2), texelColor.a);
-        //gl_FragColor = vec4(texelColor.rgb*light.rgb, texelColor.a);
-        //gl_FragColor = vec4(vec3(1.0, 1.0, 1.0)*vLight.rgb*(surfaceCosine*0.5+0.5), texelColor.a);
-
+        gl_FragColor = vec4(texelColor.rgb*(light.rgb+0.25*fogFactor)*(0.3+0.7*surfaceCosine), texelColor.a);
       }
 
     </script>

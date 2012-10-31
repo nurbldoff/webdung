@@ -170,6 +170,13 @@ glUtils.prepare_view = function (gl) {
 };
 
 
+glUtils.makePerspective = function (fovy, aspect, near, far, yshift) {
+    var top = near * Math.tan(fovy * Math.PI / 360.0),
+        right = top * aspect;
+    return mat4.frustum(-right, right, -top-yshift*top, top-yshift*top, near, far);
+};
+
+
 //
 // gluLookAt
 //
@@ -261,6 +268,6 @@ glUtils.load_threejs_files = function (names, callback) {
     }
 };
 
-glUtils.load_obj_file = function (filename, callback) {
+glUtils.load_file = function (filename, callback) {
     $("<div>").load(filename, null, callback);
 };
